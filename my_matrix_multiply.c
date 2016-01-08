@@ -91,7 +91,8 @@ int main(int argc, char *argv[]) {
 	float *c = malloc(sizeof(float) * aRow * bCol);
 	memset(c,0,sizeof(float));
 	thread_ids = (pthread_t *)malloc(sizeof(pthread_t)*threads);
-	r = (aRow*bCol)%threads;
+	r = aRow%threads;
+	printf("r: %d\n", r);
 	for(t=0; t < threads; t++) {
 		args = (struct arg_struct *)malloc(sizeof(struct arg_struct));
 		args->my_size = (aRow-r)/threads;
@@ -104,6 +105,7 @@ int main(int argc, char *argv[]) {
 		else
 			args->my_startingIndex = startingCounter;
 		startingCounter += args->my_size*bCol;
+		printf("thread: %d size: %d\n", t+1, args->my_size);
 		args->id = (t+1);
 		args->aMatrix = a;
 		args->bMatrix = b;
