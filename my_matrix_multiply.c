@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <errno.h>
 struct arg_struct {
 	int id;
 	int my_size;
@@ -54,23 +55,38 @@ int main(int argc, char *argv[]) {
 	char num[1];
 	char *n;
 	int aRow, aCol, bRow, bCol, i, j;
+	double d;
 	struct arg_struct *args;
 	//read in a matrix
 	if (fgets(line, 100, aFile) != NULL) {
-		n = strtok(line, " ");
-		aRow = atoi(n);
-		n = strtok(NULL, "\n");
-		aCol = atoi(n);
+	  n = strtok(line, " ");
+	  aRow = atoi(n);
+	  n = strtok(NULL, "\n");
+	  aCol = atoi(n);
 	}
 	float *a = malloc(sizeof(float) * aRow * aCol);
 	int aCount = 0;
 	while (fgets(line, 1000, aFile) != NULL) {
-		if (line[0] != '#') {
-			n = strtok(line, "\n");
-			a[aCount] = atof(n);
-			aCount++;
-		}
+	  if (aCount > aRow*aCol) {
+	    printf("Invalid number of elements for matrix A\n");
+	    fflush(stdout);
+	    exit(-1);
+	  }
+	  
+	  if (line[0] != '#') {
+	    n = strtok(line, "\n");
+	    a[aCount] = atof(n);
+	    aCount++;
+	  }
 	}
+
+	if (aCount < aRow*aCol) {
+	  printf("Invalid number of elements for matrix A\n");
+	  fflush(stdout);
+	  exit(-1);
+	}
+	
+	
 	//read in b matrix
 	if (fgets(line, 100, bFile) != NULL) {
 		n = strtok(line, " ");
@@ -81,12 +97,26 @@ int main(int argc, char *argv[]) {
 	float *b = malloc(sizeof(float) * bRow * bCol);
 	int bCount = 0;
 	while (fgets(line, 1000, bFile) != NULL) {
-		if (line[0] != '#') {
-			n = strtok(line, "\n");
-			b[bCount] = atof(n);
-			bCount++;
-		}
+	  if (bCount > bRow*bCol) {
+	    printf("Invalid number of elements for matrix B\n");
+	    fflush(stdout);
+	    exit(-1);
+	  }
+	  if (line[0] != '#') {
+	    n = strtok(line, "\n");
+	    b[bCount] = atof(n);
+	    bCount++;
+	  }
 	}
+
+	if (bCount < bRow*bCol) {
+	  printf("Invalid number of elements for matrix B\n");
+	  fflush(stdout);
+	  exit(-1);
+	}
+	
+
+	
 /*	for (i = 0; i<aRow*aCol; i++)
 		printf("%f\n", a[i]);
 	for (i = 0; i<bRow*bCol; i++)
@@ -94,6 +124,12 @@ int main(int argc, char *argv[]) {
 	fclose(aFile);
 	fclose(bFile);
 	//need to check valid matrix sizes
+	if (aCol != bRow) {
+	  printf("Invalid matrix size\n");
+	  fflush(stdout);
+	  exit(-1);
+	}
+	
 	float *c = malloc(sizeof(float) * aRow * bCol);
 	memset(c,0,sizeof(float));
 	thread_ids = (pthread_t *)malloc(sizeof(pthread_t)*threads);
