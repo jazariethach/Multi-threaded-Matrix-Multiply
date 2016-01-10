@@ -8,7 +8,7 @@ struct arg_struct {
 	int id;
 	int my_size;
 	float *aMatrix, *bMatrix, *cMatrix;
-	int my_startingIndex;
+	int my_startingIndex, my_aStartingIndex;
 	int aRow, bCol, aCol;
 };
 void *MatrixMultiply(void *arg) {
@@ -21,16 +21,17 @@ void *MatrixMultiply(void *arg) {
 	float *b = my_args->bMatrix;
 	float *c = my_args->cMatrix;
 	int startingIndex = my_args->my_startingIndex;
+	int aStartingIndex = my_args->my_aStartingIndex;
 	int aR = my_args->aRow;
 	int bC = my_args->bCol;
 	int aC = my_args->aCol;
 	for (i = 0; i< size*bC; i++) {
 		c[i+startingIndex] = 0;
-		aCounter = startingIndex + i/(size*bC);
+		aCounter = aStartingIndex + (i/bC)*aC;
 		bCounter = i%bC;
 		for (j = 0; j< aC; j++) {
-		//	printf("thread: %d aCounter: %d  bCounter: %d  i: %d\n", my_args->id, aCounter, bCounter, i);
-		//	printf("thread: %d a[aCounter]: %d  b[bCounter]: %d\n", my_args->id, a[aCounter], b[bCounter]);
+	//		printf("thread: %d aCounter: %d  bCounter: %d  i: %d  size: %d\n", my_args->id, aCounter, bCounter, i, startingIndex);
+	//		printf("thread: %d a[aCounter]: %f  b[bCounter]: %f\n", my_args->id, a[aCounter], b[bCounter]);
 			c[i+startingIndex] += a[aCounter] * b[bCounter];
 			aCounter++;
 			bCounter +=bC;
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
 	int threads = atoi(argv[6]);
 	int r, t, err;
 	int startingCounter = 0;
+	int aStartingCounter = 0;
 	char *aFileName = argv[2];
 	char *bFileName = argv[4];
 	FILE *aFile, *bFile;
@@ -85,6 +87,10 @@ int main(int argc, char *argv[]) {
 			bCount++;
 		}
 	}
+/*	for (i = 0; i<aRow*aCol; i++)
+		printf("%f\n", a[i]);
+	for (i = 0; i<bRow*bCol; i++)
+		printf("%f\n", b[i]);*/
 	fclose(aFile);
 	fclose(bFile);
 	//need to check valid matrix sizes
@@ -92,7 +98,6 @@ int main(int argc, char *argv[]) {
 	memset(c,0,sizeof(float));
 	thread_ids = (pthread_t *)malloc(sizeof(pthread_t)*threads);
 	r = aRow%threads;
-	printf("r: %d\n", r);
 	for(t=0; t < threads; t++) {
 		args = (struct arg_struct *)malloc(sizeof(struct arg_struct));
 		args->my_size = (aRow-r)/threads;
@@ -100,12 +105,16 @@ int main(int argc, char *argv[]) {
 			args->my_size++;
 			r--;
 		}
-		if (t == 0)
+		if (t == 0) {
 			args->my_startingIndex = 0;
-		else
+			args->my_aStartingIndex = 0;
+		}
+		else {
 			args->my_startingIndex = startingCounter;
+			args->my_aStartingIndex = aStartingCounter;
+		}
 		startingCounter += args->my_size*bCol;
-		printf("thread: %d size: %d\n", t+1, args->my_size);
+		aStartingCounter += args->my_size*aCol;
 		args->id = (t+1);
 		args->aMatrix = a;
 		args->bMatrix = b;
