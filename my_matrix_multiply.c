@@ -5,6 +5,16 @@
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/time.h>
+
+double CTimer() {
+	struct timeval tm;
+
+	gettimeofday(&tm,NULL);
+	return((double)tm.tv_sec + (double)(tm.tv_usec/1000000.0));
+}
+
 struct arg_struct {
 	int id;
 	int my_size;
@@ -41,27 +51,75 @@ void *MatrixMultiply(void *arg) {
 	fflush(stdout);
 }
 int main(int argc, char *argv[]) {
-	int threads = atoi(argv[6]);
+	double startTime = CTimer();
+	int threads;
 	int r, t, err;
+	double ret;
+	char *ptr;
 	int startingCounter = 0;
 	int aStartingCounter = 0;
-	char *aFileName = argv[2];
-	char *bFileName = argv[4];
+	char *aFileName;
+	char *bFileName;
 	FILE *aFile, *bFile;
 	pthread_t *thread_ids;
-	aFile = fopen(aFileName, "r");
-	bFile = fopen(bFileName, "r");
 	char *line = malloc(1000);
 	char num[1];
 	char *n;
 	int aRow, aCol, bRow, bCol, i, j;
 	double d;
 	struct arg_struct *args;
+	if (argc != 7) {
+		printf("Incorrect number of input arguments\n");
+		exit(-1);
+	}
+	if (strcmp(argv[1], "-a") != 0) {
+		printf("Incorrect input flag\n");
+		exit(-1);
+	}
+	if (strcmp(argv[3], "-b") != 0) {
+		printf("Incorrect input flag\n");
+		exit(-1);
+	}
+	if (strcmp(argv[5], "-t") != 0) {
+		printf("Incorrect input flag\n");
+		exit(-1);
+	}
+	for (i = 0; i<strlen(argv[6]); i++) {
+		if (!isdigit(argv[6][i])) {
+			printf("Incorrect format for thread value\n");
+			exit(-1);
+		}
+	}
+	aFileName = argv[2];
+	bFileName = argv[4];
+	threads = atoi(argv[6]);
+	aFile = fopen(aFileName, "r");
+	if (aFile == NULL) {
+		printf("Invalid file");
+		exit(-1);
+	}
+	bFile = fopen(bFileName, "r");
+	if (bFile == NULL) {	
+		printf("Invalid file");
+		exit(-1);
+	}
 	//read in a matrix
 	if (fgets(line, 100, aFile) != NULL) {
 	  n = strtok(line, " ");
+	  for (i = 0; i<strlen(n); i++) {
+		if (!isdigit(n[i])) {
+			printf("Incorrect format for matrix parameter\n");
+			exit(-1);
+		}
+	  }
 	  aRow = atoi(n);
 	  n = strtok(NULL, "\n");
+	  for (i = 0; i<strlen(n); i++) {
+		if (!isdigit(n[i])) {
+			printf("Incorrect format for matrix parameter\n");
+			exit(-1);
+		}
+	  }
 	  aCol = atoi(n);
 	}
 	float *a = malloc(sizeof(float) * aRow * aCol);
@@ -74,8 +132,17 @@ int main(int argc, char *argv[]) {
 	  }
 	  
 	  if (line[0] != '#') {
-	    n = strtok(line, "\n");
-	    a[aCount] = atof(n);
+	//    n = strtok(line, "\n");
+		if (line[0] != '-' && !isdigit(line[0])) {
+			printf("Invalid element type 1\n");
+			exit(-1);
+		}
+		ret = strtod(line, &ptr);
+		if (ptr[0] != '\n') {
+			printf("Invalid element type 2\n");
+			exit(-1);
+		}
+	    a[aCount] = ret;
 	    aCount++;
 	  }
 	}
@@ -164,6 +231,8 @@ int main(int argc, char *argv[]) {
 		err = pthread_join(thread_ids[t],NULL);
 	//	printf("thread done: %d\n", t+1);
 	}
+	printf("Time: %f\n", CTimer() - startTime);
+	printf("%d %d\n", aRow, bCol);
 	for (i = 0; i<aRow*bCol; i++)
 		printf("%f\n", c[i]);
 }
