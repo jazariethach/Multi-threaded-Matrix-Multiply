@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/time.h>
 
 double CTimer() {
@@ -18,7 +19,7 @@ double CTimer() {
 struct arg_struct {
 	int id;
 	int my_size;
-	float *aMatrix, *bMatrix, *cMatrix;
+	double *aMatrix, *bMatrix, *cMatrix;
 	int my_startingIndex, my_aStartingIndex;
 	int aRow, bCol, aCol;
 };
@@ -28,9 +29,9 @@ void *MatrixMultiply(void *arg) {
 	int i, j;
 	my_args = (struct arg_struct *)arg;
 	int size = my_args->my_size;
-	float *a = my_args->aMatrix;
-	float *b = my_args->bMatrix;
-	float *c = my_args->cMatrix;
+	double *a = my_args->aMatrix;
+	double *b = my_args->bMatrix;
+	double *c = my_args->cMatrix;
 	int startingIndex = my_args->my_startingIndex;
 	int aStartingIndex = my_args->my_aStartingIndex;
 	int aR = my_args->aRow;
@@ -48,7 +49,7 @@ void *MatrixMultiply(void *arg) {
 			bCounter +=bC;
 		}
 	}
-	fflush(stdout);
+	free(my_args);
 }
 int main(int argc, char *argv[]) {
 	double startTime = CTimer();
@@ -58,6 +59,7 @@ int main(int argc, char *argv[]) {
 	char *ptr;
 	int startingCounter = 0;
 	int aStartingCounter = 0;
+	int currentRow = 0;
 	char *aFileName;
 	char *bFileName;
 	FILE *aFile, *bFile;
@@ -122,7 +124,7 @@ int main(int argc, char *argv[]) {
 	  }
 	  aCol = atoi(n);
 	}
-	float *a = malloc(sizeof(float) * aRow * aCol);
+	double *a = malloc(sizeof(double) * aRow * aCol);
 	int aCount = 0;
 	while (fgets(line, 1000, aFile) != NULL) {
 	  if (aCount > aRow*aCol) {
@@ -161,7 +163,7 @@ int main(int argc, char *argv[]) {
 		n = strtok(NULL, "\n");
 		bCol = atoi(n);
 	}
-	float *b = malloc(sizeof(float) * bRow * bCol);
+	double *b = malloc(sizeof(double) * bRow * bCol);
 	int bCount = 0;
 	while (fgets(line, 1000, bFile) != NULL) {
 	  if (bCount > bRow*bCol) {
@@ -197,8 +199,8 @@ int main(int argc, char *argv[]) {
 	  exit(-1);
 	}
 	
-	float *c = malloc(sizeof(float) * aRow * bCol);
-	memset(c,0,sizeof(float));
+	double *c = malloc(sizeof(double) * aRow * bCol);
+	memset(c,0,sizeof(double));
 	thread_ids = (pthread_t *)malloc(sizeof(pthread_t)*threads);
 	r = aRow%threads;
 	for(t=0; t < threads; t++) {
@@ -224,15 +226,27 @@ int main(int argc, char *argv[]) {
 		args->cMatrix = c;
 		args->aRow = aRow;
 		args->aCol = aCol;
-		args->bCol = bCol;
+ 		args->bCol = bCol;
 		err = pthread_create(&(thread_ids[t]), NULL, MatrixMultiply, (void *)args);
 	}
 	for(t=0; t < threads; t++) {
 		err = pthread_join(thread_ids[t],NULL);
-	//	printf("thread done: %d\n", t+1);
 	}
-	printf("Time: %f\n", CTimer() - startTime);
+	//printf("Time: %f\n", CTimer() - startTime);
 	printf("%d %d\n", aRow, bCol);
-	for (i = 0; i<aRow*bCol; i++)
-		printf("%f\n", c[i]);
+	for (i = 0; i<aRow*bCol; i++){
+	  if(i%aRow == 0){
+	    printf("# Row %d\n", currentRow);
+	    currentRow++;
+	  }
+	  
+	  printf("%f\n", c[i]);
+
+	}
+	//free memory
+	free(line);
+	free(a);
+	free(b);
+	free(c);
+	free(thread_ids);
 }
