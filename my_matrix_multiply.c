@@ -1,5 +1,4 @@
 //sharon levy and jazarie thach
-//fix trailing whitespace segfault in files
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,15 +24,16 @@ char *trimW(char *str)
     str++;
   }
 
-  if(*str == 0)  // All spaces?
+  if(*str == '\0') {
     return str;
-
-  end = str + strlen(str) - 1;
+  }
+  
+  end = str + (strlen(str) - 1);
   while(end > str && isspace(*end)) {
     end--;
   }
 
-  *(end+1) = 0;
+  *(end+1) = '\0';
 
   return str;
 }
@@ -64,8 +64,8 @@ void *MatrixMultiply(void *arg) {
 		aCounter = aStartingIndex + (i/bC)*aC;
 		bCounter = i%bC;
 		for (j = 0; j< aC; j++) {
-	//		printf("thread: %d aCounter: %d  bCounter: %d  i: %d  size: %d\n", my_args->id, aCounter, bCounter, i, startingIndex);
-	//		printf("thread: %d a[aCounter]: %f  b[bCounter]: %f\n", my_args->id, a[aCounter], b[bCounter]);
+	//printf("thread: %d aCounter: %d  bCounter: %d  i: %d  size: %d\n", my_args->id, aCounter, bCounter, i, startingIndex);
+	//printf("thread: %d a[aCounter]: %f  b[bCounter]: %f\n", my_args->id, a[aCounter], b[bCounter]);
 			c[i+startingIndex] += a[aCounter] * b[bCounter];
 			aCounter++;
 			bCounter +=bC;
@@ -90,42 +90,48 @@ int main(int argc, char *argv[]) {
 	char *line2;
 	char num[1];
 	char *n;
-	int aRow, aCol, bRow, bCol, i, j;
+	int aRow, aCol, bRow, bCol, i, j, opt;
 	double d;
 	struct arg_struct *args;
+
 	if (argc != 7) {
 		printf("Incorrect number of input arguments\n");
 		exit(-1);
 	}
-	if (strcmp(argv[1], "-a") != 0) {
-		printf("Incorrect input flag\n");
-		exit(-1);
-	}
-	if (strcmp(argv[3], "-b") != 0) {
-		printf("Incorrect input flag\n");
-		exit(-1);
-	}
-	if (strcmp(argv[5], "-t") != 0) {
-		printf("Incorrect input flag\n");
-		exit(-1);
-	}
-	for (i = 0; i<strlen(argv[6]); i++) {
-		if (!isdigit(argv[6][i])) {
-			printf("Incorrect format for thread value\n");
-			exit(-1);
+
+	//need to require all three flags
+	//don't allow repeating flags
+	while ((opt = getopt (argc, argv, "a:b:t:")) != -1)
+	  {
+	    switch (opt)
+	      {
+	      case 'a':
+		aFileName = optarg;
+                break;
+	      case 'b':
+		bFileName = optarg;
+                break;
+	      case 't':
+		printf("threads: %s\n",optarg);
+		for (i = 0; i<strlen(optarg); i++) {
+		  if (!isdigit(optarg[i])) {
+		    printf("Incorrect format for thread value\n");
+		    exit(-1);
+		  }
 		}
-	}
-	aFileName = argv[2];
-	bFileName = argv[4];
-	threads = atoi(argv[6]);
+		threads = atoi(optarg);
+		break;
+	      }
+	  }
+	
 	aFile = fopen(aFileName, "r");
 	if (aFile == NULL) {
-		printf("Invalid file");
+		printf("Invalid file\n");
 		exit(-1);
 	}
 	bFile = fopen(bFileName, "r");
 	if (bFile == NULL) {	
-		printf("Invalid file");
+		printf("Invalid file\n");
 		exit(-1);
 	}
 	//read in a matrix
