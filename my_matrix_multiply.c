@@ -5,6 +5,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/time.h>
@@ -14,6 +15,27 @@ double CTimer() {
 
 	gettimeofday(&tm,NULL);
 	return((double)tm.tv_sec + (double)(tm.tv_usec/1000000.0));
+}
+
+char *trimW(char *str)
+{
+  char *end;
+
+  while(isspace(*str)) {
+    str++;
+  }
+
+  if(*str == 0)  // All spaces?
+    return str;
+
+  end = str + strlen(str) - 1;
+  while(end > str && isspace(*end)) {
+    end--;
+  }
+
+  *(end+1) = 0;
+
+  return str;
 }
 
 struct arg_struct {
@@ -65,6 +87,7 @@ int main(int argc, char *argv[]) {
 	FILE *aFile, *bFile;
 	pthread_t *thread_ids;
 	char *line = malloc(1000);
+	char *line2;
 	char num[1];
 	char *n;
 	int aRow, aCol, bRow, bCol, i, j;
@@ -107,7 +130,7 @@ int main(int argc, char *argv[]) {
 	}
 	//read in a matrix
 	if (fgets(line, 100, aFile) != NULL) {
-	  n = strtok(line, " ");
+	  n = trimW(strtok(line, " "));
 	  for (i = 0; i<strlen(n); i++) {
 		if (!isdigit(n[i])) {
 			printf("Incorrect format for matrix parameter\n");
@@ -115,7 +138,9 @@ int main(int argc, char *argv[]) {
 		}
 	  }
 	  aRow = atoi(n);
-	  n = strtok(NULL, "\n");
+	  n = trimW(strtok(NULL, "\n"));
+       
+
 	  for (i = 0; i<strlen(n); i++) {
 		if (!isdigit(n[i])) {
 			printf("Incorrect format for matrix parameter\n");
@@ -133,14 +158,14 @@ int main(int argc, char *argv[]) {
 	    exit(-1);
 	  }
 	  
-	  if (line[0] != '#') {
-	//    n = strtok(line, "\n");
-		if (line[0] != '-' && !isdigit(line[0])) {
+	  line2 = trimW(line);
+	  if (line2[0] != '#' && line2[0] != '\0') {
+		if (line2[0] != '-' && !isdigit(line2[0])) {
 			printf("Invalid element type 1\n");
 			exit(-1);
 		}
-		ret = strtod(line, &ptr);
-		if (ptr[0] != '\n') {
+		ret = strtod(line2, &ptr);
+		if (ptr[0] != '\0') {
 			printf("Invalid element type 2\n");
 			exit(-1);
 		}
@@ -158,10 +183,24 @@ int main(int argc, char *argv[]) {
 	
 	//read in b matrix
 	if (fgets(line, 100, bFile) != NULL) {
-		n = strtok(line, " ");
-		bRow = atoi(n);
-		n = strtok(NULL, "\n");
-		bCol = atoi(n);
+	  n = trimW(strtok(line, " "));
+	  for (i = 0; i<strlen(n); i++) {
+		if (!isdigit(n[i])) {
+			printf("Incorrect format for matrix parameter\n");
+			exit(-1);
+		}
+	  }
+	  bRow = atoi(n);
+	  n = trimW(strtok(NULL, "\n"));
+       
+
+	  for (i = 0; i<strlen(n); i++) {
+		if (!isdigit(n[i])) {
+			printf("Incorrect format for matrix parameter\n");
+			exit(-1);
+		}
+	  }
+	  bCol = atoi(n);
 	}
 	double *b = malloc(sizeof(double) * bRow * bCol);
 	int bCount = 0;
@@ -171,9 +210,19 @@ int main(int argc, char *argv[]) {
 	    fflush(stdout);
 	    exit(-1);
 	  }
-	  if (line[0] != '#') {
-	    n = strtok(line, "\n");
-	    b[bCount] = atof(n);
+	  
+	  line2 = trimW(line);
+	  if (line2[0] != '#' && line2[0] != '\0') {
+		if (line2[0] != '-' && !isdigit(line2[0])) {
+			printf("Invalid element type 1\n");
+			exit(-1);
+		}
+		ret = strtod(line2, &ptr);
+		if (ptr[0] != '\0') {
+			printf("Invalid element type 2\n");
+			exit(-1);
+		}
+	    b[bCount] = ret;
 	    bCount++;
 	  }
 	}
@@ -183,9 +232,7 @@ int main(int argc, char *argv[]) {
 	  fflush(stdout);
 	  exit(-1);
 	}
-	
-
-	
+       	
 /*	for (i = 0; i<aRow*aCol; i++)
 		printf("%f\n", a[i]);
 	for (i = 0; i<bRow*bCol; i++)
