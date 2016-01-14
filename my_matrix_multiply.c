@@ -298,7 +298,7 @@ int main(int argc, char *argv[]) {
 	//printf("Time: %f\n", CTimer() - startTime);
 	printf("%d %d\n", aRow, bCol);
 	for (i = 0; i<aRow*bCol; i++){
-	  if(i%aRow == 0){
+	  if(i%bCol == 0){
 	    printf("# Row %d\n", currentRow);
 	    currentRow++;
 	  }
