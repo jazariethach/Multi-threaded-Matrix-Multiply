@@ -312,4 +312,5 @@ int main(int argc, char *argv[]) {
 	free(b);
 	free(c);
 	free(thread_ids);
+	return 0;
 }
