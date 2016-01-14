@@ -91,6 +91,7 @@ int main(int argc, char *argv[]) {
 	char num[1];
 	char *n;
 	int aRow, aCol, bRow, bCol, i, j, opt;
+	int flag1 = 0, flag2 = 0, flag3 = 0;
 	double d;
 	struct arg_struct *args;
 
@@ -99,20 +100,20 @@ int main(int argc, char *argv[]) {
 		exit(-1);
 	}
 
-	//need to require all three flags
-	//don't allow repeating flags
+	opterr = 0;
 	while ((opt = getopt (argc, argv, "a:b:t:")) != -1)
 	  {
 	    switch (opt)
 	      {
 	      case 'a':
 		aFileName = optarg;
+		flag1++;
                 break;
 	      case 'b':
 		bFileName = optarg;
+		flag2++;
                 break;
 	      case 't':
-		printf("threads: %s\n",optarg);
 		for (i = 0; i<strlen(optarg); i++) {
 		  if (!isdigit(optarg[i])) {
 		    printf("Incorrect format for thread value\n");
@@ -120,9 +121,18 @@ int main(int argc, char *argv[]) {
 		  }
 		}
 		threads = atoi(optarg);
+		flag3++;
 		break;
+	      default:
+		printf("Invalid flag argument\n");
+		exit(-1);
 	      }
 	  }
+
+	if (flag1 != 1 || flag2 != 1 || flag3 != 1) {
+	  printf("Incorrect format for flag arguments\n");
+	  exit(-1);
+	}
 	
 	aFile = fopen(aFileName, "r");
 	if (aFile == NULL) {
