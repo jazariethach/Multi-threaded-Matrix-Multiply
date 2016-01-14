@@ -12,9 +12,9 @@
 struct arg_struct {
   int id;
   int my_size;
-  double *aMatrix, *bMatrix, *cMatrix;
-  int my_startingIndex, my_aStartingIndex;
   int aRow, bCol, aCol;
+  int my_startingIndex, my_aStartingIndex;
+  double *aMatrix, *bMatrix, *cMatrix;
 };
 
 double CTimer() {
