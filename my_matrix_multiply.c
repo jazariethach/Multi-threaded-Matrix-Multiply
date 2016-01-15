@@ -17,12 +17,7 @@ struct arg_struct {
   double *aMatrix, *bMatrix, *cMatrix;
 };
 
-double CTimer() {
-  struct timeval tm;
-
-  gettimeofday(&tm,NULL);
-  return((double)tm.tv_sec + (double)(tm.tv_usec/1000000.0));
-}
+double CTimer();
 
 char *trimW(char *str) {
   char *end;
@@ -30,18 +25,15 @@ char *trimW(char *str) {
   while(isspace(*str)) {
     str++;
   }
-
   if(*str == '\0') {
     return str;
   }
-  
   end = str + (strlen(str) - 1);
   while(isspace(*end) && end > str) {
     end--;
   }
-
   *(end+1) = '\0';
-
+  
   return str;
 }
 
@@ -71,10 +63,11 @@ void *MatrixMultiply(void *arg) {
   }
   
   free(my_args);
+  return c;
 }
 
 int main(int argc, char *argv[]) {
-  double startTime = CTimer();
+  //  double startTime = CTimer();
   double d;
   double ret;
   int threads;
