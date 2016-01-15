@@ -138,8 +138,22 @@ int main(int argc, char *argv[]) {
   }
   
   //read in a matrix
-  if (fgets(line, 100, aFile) != NULL) {
-    n = trimW(strtok(line, " "));
+  fgets(line, 1000, aFile);
+  if (line == NULL) {
+  	printf("Empty file\n");
+  	exit(-1);
+  }
+  while (trimW(line)[0] == '\0') {
+  		if (fgets(line, 1000, aFile) == NULL) {
+  			printf("Empty file\n");
+  			exit(-1);	
+  		}
+  	}
+  if (line != NULL) {
+  	while (trimW(line)[0] == '\0') {
+  		fgets(line, 1000, aFile);
+  	}
+    n = trimW(strtok(line, " \t\n"));
     for (i = 0; i<strlen(n); i++) {
       if (!isdigit(n[i])) {
 	printf("Incorrect format for matrix parameter\n");
@@ -148,8 +162,14 @@ int main(int argc, char *argv[]) {
     }
 
     aRow = atoi(n);
-    n = trimW(strtok(NULL, "\n"));
-       
+    n = strtok(NULL, "\n");
+    if (n == '\0') {
+    	printf("Invalid row/column assignment placement\n");
+    	exit(-1);
+    }
+    n = trimW(n);
+  //  n = trimW(strtok(NULL, "\n"));  
+  //	 printf("hiii\n");
     for (i = 0; i<strlen(n); i++) {
       if (!isdigit(n[i])) {
 	printf("Incorrect format for matrix parameter\n");
@@ -191,7 +211,21 @@ int main(int argc, char *argv[]) {
   }	
 	
   //read in b matrix
-  if (fgets(line, 100, bFile) != NULL) {
+  fgets(line, 1000, bFile);
+  if (line == NULL) {
+  	printf("Empty file\n");
+  	exit(-1);
+  }
+  while (trimW(line)[0] == '\0') {
+  		if (fgets(line, 1000, bFile) == NULL) {
+  			printf("Empty file\n");
+  			exit(-1);	
+  		}
+  	}
+  if (line != NULL) {
+  	while (trimW(line)[0] == '\0') {
+  		fgets(line, 1000, bFile);
+  	}
     n = trimW(strtok(line, " "));
     for (i = 0; i<strlen(n); i++) {
       if (!isdigit(n[i])) {
@@ -201,7 +235,12 @@ int main(int argc, char *argv[]) {
     }
     
     bRow = atoi(n);
-    n = trimW(strtok(NULL, "\n"));   
+    n = strtok(NULL, "\n");
+    if (n == '\0') {
+    	printf("Invalid row/column assignment placement\n");
+    	exit(-1);
+    }
+    n = trimW(n);
 
     for (i = 0; i<strlen(n); i++) {
       if (!isdigit(n[i])) {
